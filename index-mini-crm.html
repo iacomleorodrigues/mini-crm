@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Mini CRM no Navegador</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #1e1f26, #2e3138);
+      color: #fff;
+    }
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 2.5em;
+      color: #00ffd5;
+    }
+    form, table {
+      max-width: 700px;
+      margin: 30px auto;
+      background-color: #2a2d34;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 255, 213, 0.2);
+    }
+    input, textarea, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+    input, textarea, select {
+      background-color: #1f2128;
+      color: #fff;
+    }
+    button {
+      background-color: #00ffd5;
+      color: #000;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #00bfa6;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #444;
+    }
+    th {
+      background-color: #3a3d45;
+    }
+    tr:hover {
+      background-color: #383c45;
+    }
+    .actions button {
+      width: auto;
+      padding: 5px 10px;
+      margin-right: 5px;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mini CRM</h1>
+  <form id="crmForm">
+    <input type="hidden" id="index">
+    <input type="text" id="nome" placeholder="Nome do Cliente" required>
+    <input type="text" id="telefone" placeholder="Telefone" required>
+    <select id="status">
+      <option value="Novo">Novo</option>
+      <option value="Em negociação">Em negociação</option>
+      <option value="Fechado">Fechado</option>
+    </select>
+    <textarea id="obs" placeholder="Observações"></textarea>
+    <button type="submit">Salvar</button>
+  </form>
+
+  <table id="lista">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Telefone</th>
+        <th>Status</th>
+        <th>Obs</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    let clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+
+    function salvarClientes() {
+      localStorage.setItem('clientes', JSON.stringify(clientes));
+    }
+
+    function renderizar() {
+      const tbody = document.querySelector('#lista tbody');
+      tbody.innerHTML = '';
+      clientes.forEach((cli, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${cli.nome}</td>
+          <td>${cli.telefone}</td>
+          <td>${cli.status}</td>
+          <td>${cli.obs}</td>
+          <td class="actions">
+            <button onclick="editar(${i})">✏️</button>
+            <button onclick="excluir(${i})">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function editar(i) {
+      const c = clientes[i];
+      document.getElementById('index').value = i;
+      document.getElementById('nome').value = c.nome;
+      document.getElementById('telefone').value = c.telefone;
+      document.getElementById('status').value = c.status;
+      document.getElementById('obs').value = c.obs;
+    }
+
+    function excluir(i) {
+      if (confirm('Tem certeza que deseja excluir?')) {
+        clientes.splice(i, 1);
+        salvarClientes();
+        renderizar();
+      }
+    }
+
+    document.getElementById('crmForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const i = document.getElementById('index').value;
+      const novoCliente = {
+        nome: document.getElementById('nome').value,
+        telefone: document.getElementById('telefone').value,
+        status: document.getElementById('status').value,
+        obs: document.getElementById('obs').value,
+      };
+      if (i === '') {
+        clientes.push(novoCliente);
+      } else {
+        clientes[i] = novoCliente;
+        document.getElementById('index').value = '';
+      }
+      salvarClientes();
+      renderizar();
+      e.target.reset();
+    });
+
+    renderizar();
+  </script>
+</body>
+</html>
