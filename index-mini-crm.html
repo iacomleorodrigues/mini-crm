@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Mini CRM no Navegador</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      text-align: center;
+    }
+    form, table {
+      max-width: 600px;
+      margin: 20px auto;
+    }
+    input, textarea, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      box-sizing: border-box;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    button {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mini CRM</h1>
+  <form id="crmForm">
+    <input type="hidden" id="index">
+    <input type="text" id="nome" placeholder="Nome do Cliente" required>
+    <input type="text" id="telefone" placeholder="Telefone" required>
+    <select id="status">
+      <option value="Novo">Novo</option>
+      <option value="Em negociação">Em negociação</option>
+      <option value="Fechado">Fechado</option>
+    </select>
+    <textarea id="obs" placeholder="Observações"></textarea>
+    <button type="submit">Salvar</button>
+  </form>
+
+  <table id="lista">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Telefone</th>
+        <th>Status</th>
+        <th>Obs</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    let clientes = JSON.parse(localStorage.getItem('clientes') || '[]');
+
+    function salvarClientes() {
+      localStorage.setItem('clientes', JSON.stringify(clientes));
+    }
+
+    function renderizar() {
+      const tbody = document.querySelector('#lista tbody');
+      tbody.innerHTML = '';
+      clientes.forEach((cli, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${cli.nome}</td>
+          <td>${cli.telefone}</td>
+          <td>${cli.status}</td>
+          <td>${cli.obs}</td>
+          <td>
+            <button onclick="editar(${i})">✏️</button>
+            <button onclick="excluir(${i})">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function editar(i) {
+      const c = clientes[i];
+      document.getElementById('index').value = i;
+      document.getElementById('nome').value = c.nome;
+      document.getElementById('telefone').value = c.telefone;
+      document.getElementById('status').value = c.status;
+      document.getElementById('obs').value = c.obs;
+    }
+
+    function excluir(i) {
+      if (confirm('Tem certeza que deseja excluir?')) {
+        clientes.splice(i, 1);
+        salvarClientes();
+        renderizar();
+      }
+    }
+
+    document.getElementById('crmForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const i = document.getElementById('index').value;
+      const novoCliente = {
+        nome: document.getElementById('nome').value,
+        telefone: document.getElementById('telefone').value,
+        status: document.getElementById('status').value,
+        obs: document.getElementById('obs').value,
+      };
+      if (i === '') {
+        clientes.push(novoCliente);
+      } else {
+        clientes[i] = novoCliente;
+        document.getElementById('index').value = '';
+      }
+      salvarClientes();
+      renderizar();
+      e.target.reset();
+    });
+
+    renderizar();
+  </script>
+</body>
+</html>
